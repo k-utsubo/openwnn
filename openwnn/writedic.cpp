@@ -122,10 +122,10 @@ void set_header(std::vector<NJ_UINT8> &b,int que_size,int yomi_size,int kanji_si
     b.push_back(0);
     
     // type
-    b.push_back(0);
-    b.push_back(0x02);
-    b.push_back(0);
-    b.push_back(0x02);
+    b.push_back(0x80);
+    b.push_back(0x03);
+    b.push_back(0x00);
+    b.push_back(0x00);
     
     // data size , あとで入れる
     set_int32(b,data_size);

@@ -18,6 +18,9 @@
 		842C4BFB1FA9A618002FD1C4 /* ndfdic.c in Sources */ = {isa = PBXBuildFile; fileRef = 842C4BEA1FA9A617002FD1C4 /* ndfdic.c */; };
 		842C4BFC1FA9A618002FD1C4 /* neapi.c in Sources */ = {isa = PBXBuildFile; fileRef = 842C4BF11FA9A618002FD1C4 /* neapi.c */; };
 		84D7E3161FB1AAD700BF339E /* libiconv.2.4.0.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 84D7E3151FB1AA6B00BF339E /* libiconv.2.4.0.tbd */; };
+		84E2D8A41FB29BD900FE1911 /* readdic.c in Sources */ = {isa = PBXBuildFile; fileRef = 84E2D8A31FB29BD900FE1911 /* readdic.c */; };
+		84E2D8A91FB29CAD00FE1911 /* utfsample.c in Sources */ = {isa = PBXBuildFile; fileRef = 84E2D8A81FB29CAD00FE1911 /* utfsample.c */; };
+		84E2D8AF1FB29E7B00FE1911 /* writedic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 84E2D8AD1FB29E7B00FE1911 /* writedic.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -56,6 +59,12 @@
 		842C4BF21FA9A618002FD1C4 /* nj_err.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nj_err.h; sourceTree = "<group>"; };
 		84D7E3141FB1AA3E00BF339E /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		84D7E3151FB1AA6B00BF339E /* libiconv.2.4.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.2.4.0.tbd; path = usr/lib/libiconv.2.4.0.tbd; sourceTree = SDKROOT; };
+		84E2D8A21FB29BD900FE1911 /* readdic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = readdic.h; sourceTree = "<group>"; };
+		84E2D8A31FB29BD900FE1911 /* readdic.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = readdic.c; sourceTree = "<group>"; };
+		84E2D8A71FB29C8C00FE1911 /* utfsample.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = utfsample.h; sourceTree = "<group>"; };
+		84E2D8A81FB29CAD00FE1911 /* utfsample.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = utfsample.c; sourceTree = "<group>"; };
+		84E2D8AD1FB29E7B00FE1911 /* writedic.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = writedic.cpp; sourceTree = "<group>"; };
+		84E2D8AE1FB29E7B00FE1911 /* writedic.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = writedic.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +119,12 @@
 				842C4BE31FA9A617002FD1C4 /* WnnEngDic.h */,
 				842C4BE91FA9A617002FD1C4 /* WnnJpnDic.h */,
 				842C4BD81FA9A533002FD1C4 /* main.c */,
+				84E2D8A21FB29BD900FE1911 /* readdic.h */,
+				84E2D8A31FB29BD900FE1911 /* readdic.c */,
+				84E2D8A71FB29C8C00FE1911 /* utfsample.h */,
+				84E2D8A81FB29CAD00FE1911 /* utfsample.c */,
+				84E2D8AD1FB29E7B00FE1911 /* writedic.cpp */,
+				84E2D8AE1FB29E7B00FE1911 /* writedic.hpp */,
 			);
 			path = openwnn;
 			sourceTree = "<group>";
@@ -184,9 +199,12 @@
 				842C4BFA1FA9A618002FD1C4 /* nj_str.c in Sources */,
 				842C4BF61FA9A618002FD1C4 /* ndrdic.c in Sources */,
 				842C4BF71FA9A618002FD1C4 /* ndldic.c in Sources */,
+				84E2D8A41FB29BD900FE1911 /* readdic.c in Sources */,
+				84E2D8A91FB29CAD00FE1911 /* utfsample.c in Sources */,
 				842C4BF51FA9A618002FD1C4 /* ndcommon.c in Sources */,
 				842C4BD91FA9A533002FD1C4 /* main.c in Sources */,
 				842C4BF91FA9A618002FD1C4 /* necode.c in Sources */,
+				84E2D8AF1FB29E7B00FE1911 /* writedic.cpp in Sources */,
 				842C4BF81FA9A618002FD1C4 /* ndbdic.c in Sources */,
 				842C4BFB1FA9A618002FD1C4 /* ndfdic.c in Sources */,
 				842C4BFC1FA9A618002FD1C4 /* neapi.c in Sources */,

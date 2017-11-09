@@ -61,7 +61,7 @@
 
 
 
-FILE *fp;
+static FILE *fp;
 
 
 

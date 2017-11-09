@@ -16,6 +16,89 @@
 #include "nj_lib.h"
 #include <stdio.h>
 
+#define DEBUG
+
+// OpenWnnDictionaryImplJni.c
+// 文字はこれで変換する
+// dst:[ NJ_MAX_LEN + NJ_TERM_LEN ]
+static int convertStringToNjChar( const unsigned char* src, NJ_CHAR* dst)
+{
+    int maxChars=NJ_MAX_LEN;
+    if( src != NULL ) {
+        int     i, o;
+        
+        /* convert UTF-8 to UTF-16BE */
+        for( i = o = 0 ; src[ i ] != 0x00 && o < maxChars ; ) {
+            NJ_UINT8* dst_tmp;
+            dst_tmp = ( NJ_UINT8* )&( dst[ o ] );
+            
+            if( ( src[ i ] & 0x80 ) == 0x00 ) {
+                /* U+0000 ... U+007f */
+                /* 8[0xxxxxxx] -> 16BE[00000000 0xxxxxxx] */
+                dst_tmp[ 0 ] = 0x00;
+                dst_tmp[ 1 ] = src[ i + 0 ] & 0x7f;
+                i++;
+                o++;
+            } else if( ( src[ i ] & 0xe0 ) == 0xc0 ) {
+                /* U+0080 ... U+07ff */
+                /* 8[110xxxxx 10yyyyyy] -> 16BE[00000xxx xxyyyyyy] */
+                if( src[ i + 1 ] == 0x00 ) {
+                    break;
+                }
+                dst_tmp[ 0 ] = ( ( src[ i + 0 ] & 0x1f ) >> 2 );
+                dst_tmp[ 1 ] = ( ( src[ i + 0 ] & 0x1f ) << 6 ) |   ( src[ i + 1 ] & 0x3f );
+                i += 2;
+                o++;
+            } else if( ( src[ i ] & 0xf0 ) == 0xe0 ) {
+                /* U+0800 ... U+ffff */
+                /* 8[1110xxxx 10yyyyyy 10zzzzzz] -> 16BE[xxxxyyyy yyzzzzzz] */
+                if( src[ i + 1 ] == 0x00 || src[ i + 2 ] == 0x00 ) {
+                    break;
+                }
+                dst_tmp[ 0 ] = ( ( src[ i + 0 ] & 0x0f ) << 4 ) | ( ( src[ i + 1 ] & 0x3f ) >> 2 );
+                dst_tmp[ 1 ] = ( ( src[ i + 1 ] & 0x3f ) << 6 ) |   ( src[ i + 2 ] & 0x3f );
+                i += 3;
+                o++;
+            } else if( ( src[ i ] & 0xf8 ) == 0xf0 ) {
+                NJ_UINT8    dst1, dst2, dst3;
+                /* U+10000 ... U+10ffff */
+                /* 8[11110www 10xxxxxx 10yyyyyy 10zzzzzz] -> 32BE[00000000 000wwwxx xxxxyyyy yyzzzzzz] */
+                /*                                        -> 16BE[110110WW XXxxxxyy 110111yy yyzzzzzz] */
+                /*                                                      -- --======       == --------  */
+                /*                                                      dst1   dst2          dst3      */
+                /*                                        "wwwxx"(00001-10000) - 1 = "WWXX"(0000-1111) */
+                if( !( o < maxChars - 1 ) ) {
+                    /* output buffer is full */
+                    break;
+                }
+                if( src[ i + 1 ] == 0x00 || src[ i + 2 ] == 0x00 || src[ i + 3 ] == 0x00 ) {
+                    break;
+                }
+                dst1 = ( ( ( src[ i + 0 ] & 0x07 ) << 2 ) | ( ( src[ i + 1 ] & 0x3f ) >> 4 ) ) - 1;
+                dst2 =   ( ( src[ i + 1 ] & 0x3f ) << 4 ) | ( ( src[ i + 2 ] & 0x3f ) >> 2 );
+                dst3 =   ( ( src[ i + 2 ] & 0x3f ) << 6 ) |   ( src[ i + 3 ] & 0x3f );
+                
+                dst_tmp[ 0 ] = 0xd8 | ( ( dst1 & 0x0c ) >> 2 );
+                dst_tmp[ 1 ] =        ( ( dst1 & 0x03 ) << 6 ) | ( ( dst2 & 0xfc ) >> 2 );
+                dst_tmp[ 2 ] = 0xdc |                            ( ( dst2 & 0x03 ) );
+                dst_tmp[ 3 ] =                                                              dst3;
+                i += 4;
+                o += 2;
+            } else {    /* Broken code */
+                break;
+            }
+        }
+        dst[ o ] = NJ_CHAR_NUL;
+#ifdef DEBUG
+        printf("%s\n",src);
+        printf("%x\n",dst);
+#endif
+        return 0;
+    }
+    return -1;
+}
+
+
 //https://qiita.com/iseki-masaya/items/70b4ee6e0877d12dafa8
 static std::vector<std::string> split(const std::string &s, char delim) {
     std::vector<std::string> elems;
@@ -83,13 +166,17 @@ static void read_from_file(std::vector<std::string> &yomi,std::vector<std::strin
     
     
     std::sort(yomi_sorted.begin(),yomi_sorted.end());
-    //for(int i=0;i<yomi.size();i++){
-    //    printf("%s\n",yomi.at(i).c_str());
-    //}
+#ifdef DEBUG
+    for(int i=0;i<yomi.size();i++){
+        printf("%s\n",yomi.at(i).c_str());
+    }
+#endif
     std::sort(kanji_sorted.begin(),kanji_sorted.end());
-    //for(int i=0;i<kanji.size();i++){
-    //    printf("%s\n",kanji.at(i).c_str());
-    //}
+#ifdef DEBUG
+    for(int i=0;i<kanji.size();i++){
+        printf("%s\n",kanji.at(i).c_str());
+    }
+#endif
 }
 
 void set_zero32(std::vector<NJ_UINT8> &b){
@@ -145,12 +232,12 @@ void set_header(std::vector<NJ_UINT8> &b,int que_size,int yomi_size,int kanji_si
     // pos data top
     set_int32(b,pos_data_top);
     
-    // pos learn word, わからないので０
-    set_zero32(b);
+    // pos learn word count,単語数？
+    set_int32(b,kanji_size);
     
-    // pos max word, わからないので０
-    set_zero32(b);
-    
+    // pos max word, とりあえずpos learn word count
+    set_int32(b,kanji_size);
+
     // pos que size
     set_int32(b,que_size);
     
@@ -173,12 +260,24 @@ void set_header(std::vector<NJ_UINT8> &b,int que_size,int yomi_size,int kanji_si
     set_zero32(b);
 }
 
+void swap(std::vector<NJ_UINT8>& moji,int idx1,int idx2){
+    if(idx2>=moji.size())return;
+    NJ_UINT8 tmp=moji.at(idx1);
+    moji[idx1]=moji[idx2];
+    moji[idx2]=tmp;
+}
+
 // https://stackoverflow.com/questions/3081289/how-to-read-a-line-from-a-text-file-in-c-c
 void writedic(){
     std::vector<std::string> yomi;
     std::vector<std::string> kanji;
     std::vector<std::string> yomi_sorted;
     std::vector<std::string> kanji_sorted;
+    
+    NJ_CHAR yomi_buf[ NJ_MAX_LEN + NJ_TERM_LEN ];
+    NJ_CHAR kanji_buf[ NJ_MAX_LEN + NJ_TERM_LEN ];
+    //convertStringToNjChar((unsigned const char *)"ん",nj_buf);
+
     int max_yomi_size=0; // byte size
     int max_kanji_size=0; // byte size
     int max_size=0;
@@ -204,26 +303,78 @@ void writedic(){
     
     // data
     for(int i=0;i<kanji.size();i++){
+        printf("i=%d\n",i);
         b.push_back(0x41); // toriaezu
-        const char *yomi_ptr=yomi.at(i).c_str();
-        const char *kanji_ptr=kanji.at(i).c_str();
+        const unsigned char *yomi_ptr=(const unsigned char *)yomi.at(i).c_str();
+        const unsigned char *kanji_ptr=(const unsigned char *)kanji.at(i).c_str();
 
+        int yomi_byte=0;
+        int kanji_byte=0;
+        //int yomi_byte=yomi.at(i).size();
+        //int kanji_byte=kanji.at(i).size();
+        //set_int16(b,yomi_byte);
+        //set_int16(b,kanji_byte);
         
-        int yomi_byte=yomi.at(i).size();
-        int kanji_byte=kanji.at(i).size();
+        //std::vector<NJ_UINT8> yomi_vec;
+        int data_adr=5; // 5 byte to que sizeまで
+        // 読み部分
+        convertStringToNjChar(yomi_ptr,yomi_buf);
+        for(int j=0;j<sizeof(yomi_buf);j++){
+            if(NJ_CHAR_NUL == yomi_buf[j])break;
+#ifdef DEBUG
+            printf("%d\n",yomi_buf[j]);
+#endif
+            //yomi_vec.push_back(nj_buf[j]);
+            yomi_byte++;
+        }
+        //for(int j=0;j<yomi_byte;j++){
+            //moji.push_back(nj_buf[j]);
+            //yomi_ptr++;
+            //data_adr++;
+        //}
+        // エンディアンが逆なので変更する
+        //for(int j=0;j<moji.size();j+=2){
+        //    swap(moji,j,j+1);
+        //}
+        //for(int j=0;j<moji.size();j++){
+        //    b.push_back(moji.at(j));
+        //}
+        //moji.clear();
+        
+        //std::vector<NJ_UINT8> kanji_vec;
+        // 漢字部分
+        convertStringToNjChar(kanji_ptr,kanji_buf);
+        //for(int j=0;j<kanji_byte;j++){
+        for(int j=0;j<sizeof(kanji_buf);j++){
+            if(NJ_CHAR_NUL == kanji_buf[j])break;
+            //kanji_vec.push_back(nj_buf[j]);
+            kanji_byte++;
+            //kanji_ptr++;
+            //data_adr++;
+        }
+        //for(int j=0;j<moji.size();j+=2){
+        //    swap(moji,j,j+1);
+        //}
+        //for(int j=0;j<moji.size();j++){
+        //    b.push_back(moji.at(j));
+        //}
+        //moji.clear();
+        
         set_int16(b,yomi_byte);
         set_int16(b,kanji_byte);
-        int data_adr=5; // 5 byte to que sizeまで
         for(int j=0;j<yomi_byte;j++){
-            b.push_back(*yomi_ptr);
-            yomi_ptr++;
+#ifdef DEBUG
+            printf("%d\n",yomi_buf[j]);
+#endif
+            b.push_back(yomi_buf[j]);
             data_adr++;
         }
         for(int j=0;j<kanji_byte;j++){
-            b.push_back(*kanji_ptr);
-            kanji_ptr++;
+            b.push_back(kanji_buf[j]);
             data_adr++;
         }
+        
+        // 後ろを０で埋める，固定長のため
         for(int j=data_adr;j<que_size;j++){
             b.push_back(0x0);
         }

@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 #include <stdio.h>
-void writedic();
+    void writedic(const char* infile,const char* outfile);
 #ifdef __cplusplus
 };
 #endif

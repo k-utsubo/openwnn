@@ -17,8 +17,7 @@
 #include <stdio.h>
 
 #undef DEBUG
-#define FNAME "/Users/admin/Downloads/dict.dat"
-static FILE *fp;
+
 
 // OpenWnnDictionaryImplJni.c
 // 文字はこれで変換する
@@ -114,10 +113,10 @@ static std::vector<std::string> split(const std::string &s, char delim) {
     return elems;
 }
 
-static void write_to_file(std::vector<std::string> &binary){
+static void write_to_file(const char* outfile,std::vector<std::string> &binary){
     
     FILE *rfp;
-    rfp=fopen(FNAME,"w");
+    rfp=fopen(outfile,"w");
     for(int i=0;i<binary.size();i++){
         if(i%16==0){
             fprintf(rfp,"\n");
@@ -146,8 +145,8 @@ static int moji_size(unsigned const char* src){
 }
 
 
-static void read_from_file(std::vector<std::string> &yomi,std::vector<std::string> &kanji,std::vector<std::string> &yomi_sorted,std::vector<std::string> &kanji_sorted,int &max_yomi_size,int& max_kanji_size,int &max_size){
-    std::ifstream input("/Users/admin/Downloads/dict.txt");
+static void read_from_file(const char* infile,std::vector<std::string> &yomi,std::vector<std::string> &kanji,std::vector<std::string> &yomi_sorted,std::vector<std::string> &kanji_sorted,int &max_yomi_size,int& max_kanji_size,int &max_size){
+    std::ifstream input(infile);
     std::string line;
     
     int adr=0;
@@ -197,28 +196,28 @@ static void read_from_file(std::vector<std::string> &yomi,std::vector<std::strin
 #endif
 }
 
-void set_mojiint16(std::vector<std::string> &b,long value){
+static void set_mojiint16(std::vector<std::string> &b,long value){
     b.push_back(to_s(value & 0xff));  // エンディアン対応
     b.push_back(to_s(value >> 8 & 0xff));
 }
 
-void set_int16(std::vector<std::string> &b,long value){
+static void set_int16(std::vector<std::string> &b,long value){
     b.push_back(to_s(value >> 8 & 0xff));
     b.push_back(to_s(value & 0xff));
 }
-void set_int32(std::vector<std::string> &b,long value){
+static void set_int32(std::vector<std::string> &b,long value){
     b.push_back(to_s(value >> 24 & 0xff));
     b.push_back(to_s(value >> 16 & 0xff));
     b.push_back(to_s(value >> 8 & 0xff));
     b.push_back(to_s(value & 0xff));
 }
-void set_byte(std::vector<std::string> &b,long value){
+static void set_byte(std::vector<std::string> &b,long value){
     b.push_back(to_s(value));
 }
-void set_zero32(std::vector<std::string> &b){
+static void set_zero32(std::vector<std::string> &b){
     for(int i=0;i<4;i++)set_byte(b,0);
 }
-void set_header(std::vector<std::string> &b,int que_size,int yomi_size,int kanji_size){
+static void set_header(std::vector<std::string> &b,int que_size,int yomi_size,int kanji_size){
     long pos_index=0x48;
     long pos_index2=pos_index+yomi_size*2;
     long pos_data_top=pos_index+yomi_size*2+kanji_size*2;
@@ -286,7 +285,7 @@ void set_header(std::vector<std::string> &b,int que_size,int yomi_size,int kanji
     set_zero32(b);
 }
 
-void swap(std::vector<NJ_UINT8>& moji,int idx1,int idx2){
+static void swap(std::vector<NJ_UINT8>& moji,int idx1,int idx2){
     if(idx2>=moji.size())return;
     NJ_UINT8 tmp=moji.at(idx1);
     moji[idx1]=moji[idx2];
@@ -294,7 +293,7 @@ void swap(std::vector<NJ_UINT8>& moji,int idx1,int idx2){
 }
 
 // https://stackoverflow.com/questions/3081289/how-to-read-a-line-from-a-text-file-in-c-c
-void writedic(){
+void writedic(const char* infile,const char* outfile){
     std::vector<std::string> yomi;
     std::vector<std::string> kanji;
     std::vector<std::string> yomi_sorted;
@@ -306,9 +305,8 @@ void writedic(){
     int max_yomi_size=0; // byte size
     int max_kanji_size=0; // byte size
     int max_size=0;
-    read_from_file(yomi,kanji,yomi_sorted,kanji_sorted,max_yomi_size,max_kanji_size,max_size);
+    read_from_file(infile,yomi,kanji,yomi_sorted,kanji_sorted,max_yomi_size,max_kanji_size,max_size);
 
-    fp=fopen(FNAME,"w");
 
     
     
@@ -386,7 +384,6 @@ void writedic(){
     set_byte(b,'C');
     
     
-    write_to_file(b);
+    write_to_file(outfile,b);
     printf("\nsize:%d\n",b.size());
-    fclose(fp);
 }

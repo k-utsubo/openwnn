@@ -16,7 +16,7 @@
 #include "nj_lib.h"
 #include <stdio.h>
 
-#define DEBUG
+#undef DEBUG
 #define FNAME "/Users/admin/Downloads/dict.dat"
 static FILE *fp;
 
@@ -332,7 +332,10 @@ void writedic(){
     
     // data
     for(int i=0;i<kanji.size();i++){
+#ifdef DEBUG
         printf("i=%d\n",i);
+#endif
+        if (i%10000==0)printf("i=%d\n",i);
         set_byte(b,0x41); // toriaezu
         const unsigned char *yomi_ptr=(const unsigned char *)yomi.at(i).c_str();
         const unsigned char *kanji_ptr=(const unsigned char *)kanji.at(i).c_str();

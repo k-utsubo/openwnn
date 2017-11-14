@@ -23,9 +23,10 @@ int main(){
     NJ_CHAR str=35888;
     NJ_CHAR yomi=4351;
     
-    printf("%d\n",nj_char_diff(&yomi,&str));
+    //printf("%d\n",nj_char_diff(&yomi,&str));
     
-    //writedic("/Users/admin/Downloads/dict.txt","/Users/admin/Downloads/dict.dat");
+    writedic("/Users/admin/Downloads/dict.txt.small","/Users/admin/Downloads/dict.dat");
+
     // max 65535 lines
     writedic("/Users/admin/Downloads/xaa","/Users/admin/Downloads/xaa.dat");
     writedic("/Users/admin/Downloads/xab","/Users/admin/Downloads/xab.dat");

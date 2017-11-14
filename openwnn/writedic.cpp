@@ -126,6 +126,36 @@ static void write_to_file(const char* outfile,std::vector<std::string> &binary){
     fclose(rfp);
 }
 
+static long hanten(NJ_CHAR buf){
+    // 上位下位バイトを反転
+    long upp_byte=buf & 0xff;
+    long low_byte=buf >> 8 ;
+    low_byte = low_byte & 0xff;
+    long rev=upp_byte << 8;
+    rev = rev + low_byte;
+    return rev;
+}
+
+static void write_to_binaryfile(const char* outfile,std::vector<std::string> &binary){
+    
+    FILE *rfp;
+    char *endp1,*endp2;
+    char fname[256];
+    sprintf(fname,"%s.bin",outfile);
+    rfp=fopen(fname,"w");
+    // 反転やめ
+    //for(int i=0;i<binary.size();i+=2){
+    //    long v1=strtol(binary.at(i).c_str(), &endp1, 0);
+    //    long v2=strtol(binary.at(i+1).c_str(), &endp2, 0);
+    //    fwrite(&v2,sizeof(NJ_UINT8),1,rfp);
+    //    fwrite(&v1,sizeof(NJ_UINT8),1,rfp);
+    //}
+    for(int i=0;i<binary.size();i++){
+        long v2=strtol(binary.at(i).c_str(), &endp2, 0);
+        fwrite(&v2,sizeof(NJ_UINT8),1,rfp);
+    }
+    fclose(rfp);
+}
 static std::string to_s(long value){
     char buf[2048];
     sprintf(buf,"0x%02x",value);
@@ -156,6 +186,7 @@ static void read_from_file(const char* infile,std::vector<std::string> &yomi,std
     max_kanji_size=0;
     max_size=0;
     
+    int idx=0;
     while(std::getline(input,line)){
         std::vector<std::string> vec=split(line,'\t');
 #ifdef DEBUG
@@ -215,6 +246,9 @@ static void read_from_file(const char* infile,std::vector<std::string> &yomi,std
         max_yomi_size=max_yomi_size>yomi_str_size?max_yomi_size:yomi_str_size;
         max_kanji_size=max_kanji_size>kanji_str_size?max_kanji_size:kanji_str_size;
         int siz=yomi_str_size+kanji_str_size;
+        //printf("idx=%d,siz=%d,yomi_str_size=%d,kanji_str_size=%d,max_size=%d\n",
+        //       idx++,siz,yomi_str_size,kanji_str_size,max_size);
+        
         max_size=max_size>siz?max_size:siz;
     }
     
@@ -354,10 +388,6 @@ void writedic(const char* infile,const char* outfile){
     int max_size=0;
     printf("%s\n",outfile);
     read_from_file(infile,yomi,kanji,yomi_sorted,kanji_sorted,max_yomi_size,max_kanji_size,max_size);
-
-
-    
-    
     
     std::vector<std::string> b;
     int data_header_size=5;// DATAのヘッダ部分のバイト数
@@ -386,6 +416,7 @@ void writedic(const char* infile,const char* outfile){
 #endif
 
         set_byte(b,0x41); // toriaezu
+        
         const unsigned char *yomi_ptr=(const unsigned char *)yomi.at(i).c_str();
         const unsigned char *kanji_ptr=(const unsigned char *)kanji.at(i).c_str();
 
@@ -411,6 +442,7 @@ void writedic(const char* infile,const char* outfile){
         
         set_int16(b,yomi_size*2);
         set_int16(b,kanji_size*2);
+        
         for(int j=0;j<yomi_size;j++){
 #ifdef DEBUG
             printf("%d\n",yomi_buf[j]);
@@ -429,6 +461,7 @@ void writedic(const char* infile,const char* outfile){
         }
         
     }
+    
     set_byte(b,'N');
     set_byte(b,'J');
     set_byte(b,'D');
@@ -436,5 +469,6 @@ void writedic(const char* infile,const char* outfile){
     
     
     write_to_file(outfile,b);
+    write_to_binaryfile(outfile,b);
     printf("size:%d\n\n",b.size());
 }

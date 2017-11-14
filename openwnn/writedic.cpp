@@ -182,10 +182,11 @@ static void read_from_file(const char* infile,std::vector<std::string> &yomi,std
     
     std::sort(yomi_sorted.begin(),yomi_sorted.end());
 #ifdef DEBUG
-    for(int i=0;i<yomi.size();i++){
-        printf("%s\n",yomi.at(i).c_str());
+    for(int i=0;i<yomi_sorted.size();i++){
+        printf("%s\n",yomi_sorted.at(i).c_str());
     }
 #endif
+     
     std::sort(kanji_sorted.begin(),kanji_sorted.end());
 #ifdef DEBUG
     for(int i=0;i<kanji.size();i++){

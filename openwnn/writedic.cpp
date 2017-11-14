@@ -148,7 +148,7 @@ static int moji_size(unsigned const char* src){
 static void read_from_file(const char* infile,std::vector<std::string> &yomi,std::vector<std::string> &kanji,std::vector<std::string> &yomi_sorted,std::vector<std::string> &kanji_sorted,int &max_yomi_size,int& max_kanji_size,int &max_size){
     std::ifstream input(infile);
     std::string line;
-    
+
     int adr=0;
     char buf[2048];
     
@@ -161,8 +161,47 @@ static void read_from_file(const char* infile,std::vector<std::string> &yomi,std
 #ifdef DEBUG
         printf("%s,%s\n",vec.at(0).c_str(),vec.at(1).c_str());
 #endif
-        std::string yomi_str(vec.at(0));
-        std::string kanji_str(vec.at(1));
+        //std::string yomi_str=to_utf16_str((unsigned const char*)vec.at(0).c_str());
+        std::string yomi_str;
+        NJ_CHAR char_buf[ NJ_MAX_LEN + NJ_TERM_LEN ];
+        char str_buf[NJ_MAX_LEN + NJ_TERM_LEN];
+        for(int i=0;i<sizeof(char_buf);i++)char_buf[i]=0;
+        // utf16これでソートするが上位下位バイトを逆転させたものでソート
+        convertStringToNjChar((unsigned const char*)vec.at(0).c_str(),char_buf);
+        for(int i=0;i<sizeof(char_buf);i++){
+            if(char_buf[i]==0)break;
+            
+            // 上位下位バイトを反転
+            int upp_byte=char_buf[i] & 0xff;
+            int low_byte=char_buf[i] >> 8 ;
+            low_byte = low_byte & 0xff;
+            int rev=upp_byte << 8;
+            rev = rev + low_byte;
+            //printf("%05d\n",char_buf[i]);
+            sprintf(str_buf,"%05d",rev);
+            yomi_str.append(str_buf);
+        }
+        
+        
+        std::string kanji_str;
+        for(int i=0;i<sizeof(char_buf);i++)char_buf[i]=0;
+        // utf16これでソートするが上位下位バイトを逆転させたものでソート
+        convertStringToNjChar((unsigned const char*)vec.at(1).c_str(),char_buf);
+        for(int i=0;i<sizeof(char_buf);i++){
+            if(char_buf[i]==0)break;
+            // 上位下位バイトを反転
+            int upp_byte=char_buf[i] & 0xff;
+            int low_byte=char_buf[i] >> 8 ;
+            low_byte = low_byte & 0xff;
+            int rev=upp_byte << 8;
+            rev = rev + low_byte;
+            
+            //printf("%05d\n",char_buf[i]);
+            sprintf(str_buf,"%05d",rev);
+            kanji_str.append(str_buf);
+        }
+
+
         sprintf(buf,"%d",adr++);
         yomi_str.append("\t");yomi_str.append(buf); // for sort
         yomi.push_back(vec.at(0));
@@ -180,21 +219,28 @@ static void read_from_file(const char* infile,std::vector<std::string> &yomi,std
     }
     
     
+    char fname[128];
+    sprintf(fname,"%s.yomi.txt",infile);
+    FILE *fp=fopen(fname,"w");
     std::sort(yomi_sorted.begin(),yomi_sorted.end());
-#ifdef DEBUG
     for(int i=0;i<yomi_sorted.size();i++){
-        printf("%s\n",yomi_sorted.at(i).c_str());
+        std::vector<std::string> sp=split(yomi_sorted.at(i),'\t');
+        fprintf(fp,"%s\t%s\n",yomi_sorted.at(i).c_str(),yomi.at(atoi(sp.at(1).c_str())).c_str());
     }
-#endif
-     
+    fclose(fp);
+    
+    sprintf(fname,"%s.kanji.txt",infile);
+    fp=fopen(fname,"w");
     std::sort(kanji_sorted.begin(),kanji_sorted.end());
-#ifdef DEBUG
     for(int i=0;i<kanji.size();i++){
-        printf("%s\n",kanji.at(i).c_str());
+        std::vector<std::string> sp=split(kanji_sorted.at(i),'\t');
+        fprintf(fp,"%s\t%s\n",kanji_sorted.at(i).c_str(),kanji.at(atoi(sp.at(1).c_str())).c_str());
     }
+#ifdef DEBUG
     printf("max_yomi_size:%d,max_kanji_size:%d\n",max_yomi_size,max_kanji_size);
     printf("max_size=%d\n",max_size);
 #endif
+    fclose(fp);
 }
 
 static void set_mojiint16(std::vector<std::string> &b,long value){
@@ -306,6 +352,7 @@ void writedic(const char* infile,const char* outfile){
     int max_yomi_size=0; // byte size
     int max_kanji_size=0; // byte size
     int max_size=0;
+    printf("%s\n",outfile);
     read_from_file(infile,yomi,kanji,yomi_sorted,kanji_sorted,max_yomi_size,max_kanji_size,max_size);
 
 
@@ -315,7 +362,9 @@ void writedic(const char* infile,const char* outfile){
     std::vector<std::string> b;
     int data_header_size=5;// DATAのヘッダ部分のバイト数
     int que_size=max_size*2+data_header_size; // utf-16 一文字2バイト
+#ifdef DEBUG
     printf("que_size=%d\n",que_size);
+#endif
     set_header(b,que_size,yomi.size(),kanji.size());
     
     // yomi
@@ -333,8 +382,9 @@ void writedic(const char* infile,const char* outfile){
     for(int i=0;i<kanji.size();i++){
 #ifdef DEBUG
         printf("i=%d\n",i);
-#endif
         if (i%10000==0)printf("i=%d\n",i);
+#endif
+
         set_byte(b,0x41); // toriaezu
         const unsigned char *yomi_ptr=(const unsigned char *)yomi.at(i).c_str();
         const unsigned char *kanji_ptr=(const unsigned char *)kanji.at(i).c_str();
@@ -386,5 +436,5 @@ void writedic(const char* infile,const char* outfile){
     
     
     write_to_file(outfile,b);
-    printf("\nsize:%d\n",b.size());
+    printf("size:%d\n\n",b.size());
 }

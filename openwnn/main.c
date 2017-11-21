@@ -25,7 +25,7 @@ int main(){
     
     //printf("%d\n",nj_char_diff(&yomi,&str));
     
-    writedic("/Users/admin/Downloads/dict.txt.small","/Users/admin/Downloads/dict.dat");
+    writedic("/Users/admin/Downloads/dict_with_upress_moji.txt","/Users/admin/Downloads/dict_with_upress_moji.dat");
 
     // max 65535 lines
     writedic("/Users/admin/Downloads/xaa","/Users/admin/Downloads/xaa.dat");

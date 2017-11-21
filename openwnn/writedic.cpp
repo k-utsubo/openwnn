@@ -188,6 +188,10 @@ static void read_from_file(const char* infile,std::vector<std::string> &yomi,std
     
     int idx=0;
     while(std::getline(input,line)){
+        if(line.size()==0 || line.find("!")==0){
+            continue;
+        }
+        
         std::vector<std::string> vec=split(line,'\t');
 #ifdef DEBUG
         printf("%s,%s\n",vec.at(0).c_str(),vec.at(1).c_str());

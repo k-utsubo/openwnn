@@ -25,12 +25,13 @@ int main(){
     
     //printf("%d\n",nj_char_diff(&yomi,&str));
     
-    writedic("/Users/admin/Downloads/dict_with_upress_moji.txt","/Users/admin/Downloads/dict_with_upress_moji.dat");
+    writedic("/Users/admin/Downloads/dict_small.txt","/Users/admin/Downloads/dict_small.dat");
+    //writedic("/Users/admin/Downloads/dict_with_upress_moji.txt","/Users/admin/Downloads/dict_with_upress_moji.dat");
 
     // max 65535 lines
-    writedic("/Users/admin/Downloads/xaa","/Users/admin/Downloads/xaa.dat");
-    writedic("/Users/admin/Downloads/xab","/Users/admin/Downloads/xab.dat");
-    writedic("/Users/admin/Downloads/xac","/Users/admin/Downloads/xac.dat");
-    writedic("/Users/admin/Downloads/xad","/Users/admin/Downloads/xad.dat");
+    //writedic("/Users/admin/Downloads/xaa","/Users/admin/Downloads/xaa.dat");
+    //writedic("/Users/admin/Downloads/xab","/Users/admin/Downloads/xab.dat");
+    //writedic("/Users/admin/Downloads/xac","/Users/admin/Downloads/xac.dat");
+    //writedic("/Users/admin/Downloads/xad","/Users/admin/Downloads/xad.dat");
 
 }

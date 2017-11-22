@@ -413,6 +413,14 @@ void writedic(const char* infile,const char* outfile){
     }
     
     // data
+    /*
+     
+     | _ _ _ _ _ _ _ _ | _ _ _ _ _ _ _ _ | _ _ _ _ _ _ _ _ | _ _ _ _ _ _ _ _ | _ _ _ _ _ _ _ _ |
+         f   m    |ty | | fpos              |  ysize       |    bpos            |    ksize     |
+         f   f    |pe | | maehinshi         |  yomi byte   |    ato hinshi      |    kanji size|
+         l   l
+         g   g
+     */
     for(int i=0;i<kanji.size();i++){
 #ifdef DEBUG
         printf("i=%d\n",i);
@@ -444,8 +452,22 @@ void writedic(const char* infile,const char* outfile){
         printf("yomi_size:%d,kanji_size:%d\n",yomi_size,kanji_size);
 #endif
         
-        set_int16(b,yomi_size*2);
-        set_int16(b,kanji_size*2);
+        /*
+         #define NJ_HINSI_TANKANJI_F      4
+         #define NJ_HINSI_TANKANJI_B      5
+         */
+        // 前品詞 NJ_HINSI_TANKANJI_F
+        // 後品詞 NJ_HINSI_TANKANJI_B
+        int mae_hinshi=4;
+        mae_hinshi= mae_hinshi << 7;
+        int ato_hinshi=5;
+        ato_hinshi= ato_hinshi << 7;
+        
+        int yomi_byte=yomi_size*2; // 2byte
+        int kanji_byte=kanji_size*2;
+        
+        set_int16(b,yomi_byte+mae_hinshi);
+        set_int16(b,kanji_byte+ato_hinshi);
         
         for(int j=0;j<yomi_size;j++){
 #ifdef DEBUG
